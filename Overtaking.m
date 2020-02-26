@@ -12,13 +12,13 @@ x=[0; 0; 1/2*width]; %initial psi ; x ; y ;
 
 
 %simulation time
-delt= 200e-3;
+delt= 100e-4;
 tf=40;
 t=0:delt:tf;
 
 
 
-rr=100; %weight value
+rr=1; %weight value
 
 N=10; % predicted step number
 
@@ -32,7 +32,7 @@ s_front=0;
 s_adj1=0;
 s_adj2=0;
 
-v=2; % unit:m/s, velocity
+v=5; % unit:m/s, velocity
 ego_lim=10; %m/s
 a=0;
 v_front=1; front_lim=0; %m/s
@@ -74,9 +74,9 @@ th_result=zeros(1,100);
 %%
 %constraints
 umax = 5 *pi/180;  %unit : rad %maximum input
-ymax =10* width + width; %unit : m %upper lane value when there isnt a obstacle
-ymin = -10; %unit : m %lower lane value when there isnt a obstacle
-xmax = 500;
+ymax =3/2 * width; %unit : m %upper lane value when there isnt a obstacle
+ymin = 0; %unit : m %lower lane value when there isnt a obstacle
+xmax = 9990;
 xmin = 0;
 %slope maximum, minimum constr
 safe_dist=1;
@@ -118,13 +118,13 @@ Yd=1/2*width;%width;
 path=plot(xd,yd,'.'); 
 %check obstacle variable
 obs_chk=0;
-    psi_=zeros(N,1);
-    x_=zeros(N,1);
-    y_=zeros(N,1);
+psi_=zeros(N,1);
+x_=zeros(N,1);
+y_=zeros(N,1);
 input=0;
 for i=1:length(0:delt:length(t))
     %changing way point
-    Xd=0;%init_x+s_front+10;
+    Xd=100;%init_x+s_front+10;
 
     if i==1
         x_ini=x; %initial psi, y
@@ -164,7 +164,7 @@ for i=1:length(0:delt:length(t))
     x(3,i+1)=x(3,i)+delt*v*sin(x(1,i)); %y axis position
     %Line=predictline(N,U,u_ini,x_ini,delt,v,i)
     % predictive line »ý¼º%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    psi_(1) = delt*U(1)+u_ini;
+    psi_(1) = delt*U(1)+x_ini(1,1);
     x_(1)=x_ini(2)+v*cos(psi_(1));
     y_(1)=x_ini(3)+sin(psi_(1));
     for j=2:N
