@@ -73,7 +73,7 @@ th_result=zeros(1,100);
 
 %%
 %constraints
-umax = 90 *pi/180;  %unit : rad %maximum input
+umax = 5 *pi/180;  %unit : rad %maximum input
 ymax =10* width + width; %unit : m %upper lane value when there isnt a obstacle
 ymin = -10; %unit : m %lower lane value when there isnt a obstacle
 xmax = 500;
@@ -124,14 +124,14 @@ obs_chk=0;
 input=0;
 for i=1:length(0:delt:length(t))
     %changing way point
-    Xd=10;%init_x+s_front+10;
+    Xd=0;%init_x+s_front+10;
 
     if i==1
         x_ini=x; %initial psi, y
         u_ini = 0;
     else
         x_ini=x(:,i-1);
-        u_ini=U(1);
+        u_ini=U(1)*0;
         input(i)=U(1);
     end
     
@@ -157,6 +157,8 @@ for i=1:length(0:delt:length(t))
     end
     
     U=quadprog(Q,f,At,bt);
+    J=1/2*U'*Q*U+f.'*U
+    
     x(1,i+1)=x(1,i)+delt*U(1); %steering angle, psi
     x(2,i+1)=x(2,i)+delt*v*cos(x(1,i)); % x axis position
     x(3,i+1)=x(3,i)+delt*v*sin(x(1,i)); %y axis position
@@ -223,9 +225,15 @@ for i=1:length(0:delt:length(t))
     
     drawnow;
 end
-subplot(2,1,1)
+subplot(3,1,1)
 x_=linspace(0,d,length(x(1,:)));
 plot(x_,x(1,:)*180/pi)
-subplot(2,1,2)
+title('deg')
+subplot(3,1,2)
 x_=linspace(0,d,length(input));
 plot(x_,input*180/pi);
+title('deg/s')
+subplot(3,1,3)
+x_=linspace(0,d,length(x(3,:)));
+plot(x_,x(3,:))
+title('y (m))')
