@@ -15,7 +15,7 @@ x=[0; 0; 1/2*width]; %initial psi ; x ; y ;
 delt= 100e-4;
 tf=40;
 t=0:delt:tf;
-
+ 
 
 
 rr=1; %weight value
@@ -74,7 +74,7 @@ th_result=zeros(1,100);
 %%
 %constraints
 umax = 5 *pi/180;  %unit : rad %maximum input
-ymax =3/2 * width; %unit : m %upper lane value when there isnt a obstacle
+ymax =1/2 * width; %unit : m %upper lane value when there isnt a obstacle
 ymin = 0; %unit : m %lower lane value when there isnt a obstacle
 xmax = 9990;
 xmin = 0;
