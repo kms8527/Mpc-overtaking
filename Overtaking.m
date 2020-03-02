@@ -12,16 +12,16 @@ x=[0; 0; 1/2*width; 0]; %initial psi' ; x ; y ; v;
 
 % desired waypoint
 
-Yd=1/2*width;%300%1/2*width;%width;
-vd=4;
+Yd=width;%300%1/2*width;%width;
+vd=0;
 %simulation time
-delt= 200e-3;
-tf=40;
+delt= 200e-4;
+tf=80;
 t=0:delt:tf;
 
-rr=1; %weight value
+rr=5; %weight value
 
-N=100; % predicted step number
+N=40; % predicted step number
 
 
 %information of cars
@@ -71,14 +71,14 @@ y_ego=(y_point(1)+y_point(4))/2;
 
 %%
 %input constraints
-pmax = 10 *pi/180;  %unit : rad % maximum psi
+pmax = 10 *pi/180;  %unit : rad/s^2 % maximum psi
 amax = 1.5;
 %output constraints
 xmax = 400;
-xmin = -90;
-ymax =40;%2 * width; %unit : m %upper lane value when there isnt a obstacle
+xmin = 0;
+ymax =2 * width; %unit : m %upper lane value when there isnt a obstacle
 ymin = 0; %unit : m %lower lane value when there isnt a obstacle
-vmax = 10;
+vmax = 100;
 
 
 %slope maximum, minimum constr
@@ -138,12 +138,12 @@ for i=1:length(t)
         input2(i)=U(2);
     end
     Xd=300;%init_x+s_front+10;
-    psi_dot_d=0;%x_ini(1);
+
         %changing way point
 
 
     %for overtaking maneuver1,3 constrints
-    by=[by0*[pmax; xmax; ymax; vmax]; by0*[pmax; -xmin;-ymin; vmax]];
+    by=[by0*[xmax; ymax; vmax]; by0*[-xmin;-ymin; vmax]];
     b1= -a1*(safe_dist+init_x2+s_front)+3/2*width;
     b2= -a2*(-safe_dist+init_x+s_front-L)+1/2*width;
     b3=-a3*(-safe_dist+init_x1+s_adj1-L)+3/2*width;
@@ -155,9 +155,9 @@ for i=1:length(t)
     bt=[ bu; by1];
    
     if obs_chk == 0
-        f = H.'*(G * x_ini + F * u_ini - by0 * [psi_dot_d; Xd; Yd; vd]);
+        f = H.'*(G * x_ini + F * u_ini - by0 * [ Xd; Yd; vd]);
     else
-        f = H.'*(G * x_ini + F * u_ini - by0 * [psi_dot_d; Xd; Yd+width; vd]);
+        f = H.'*(G * x_ini + F * u_ini - by0 * [ Xd; Yd+width; vd]);
     end
     
     U=quadprog(Q,f,At,bt);
@@ -166,7 +166,7 @@ for i=1:length(t)
     psi_(i+1)=p_ini+delt*x_ini(1);
     x(1,i+1)=x_ini(1)+delt*U(2) ; %derivative of steering angle, psi'
     x(2,i+1)=x_ini(2)+delt*x_ini(4)*cos(psi_(i)); % x axis position
-    x(3,i+1)=x_ini(3)+delt*x_ini(4)*sin(psi_(i)); %y axis position
+    x(3,i+1)=x_ini(3)+delt*x_ini(4)*sin(psi_(i)); % y axis position
     x(4,i+1)=x_ini(4)+delt*U(1); % v
     %Line=predictline(N,U,u_ini,x_ini,delt,v,i)
     % predictive line 생성%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -176,7 +176,7 @@ for i=1:length(t)
     x_p(3,1)=x(3,i+1);
     x_p(4,1)=x(4,i+1);
     for j=2:N
-       psi_p(j)=psi_p(j-1)+delt*x_p(j-1);
+       psi_p(j)=psi_p(j-1)+delt*x_p(1,j-1);
        x_p(1,j)=x_p(1,j-1)+delt*U(2*j);
        x_p(2,j)=x_p(2,j-1)+delt*x_p(4,j-1)*cos(psi_p(j-1));
        x_p(3,j)=x_p(3,j-1)+delt*x_p(4,j-1)*sin(psi_p(j-1));
@@ -218,12 +218,11 @@ for i=1:length(t)
     car_dist=sum(x_front)/4-X; %ego 중심점과 front 중심점 거리
     car_dist_adj1=sqrt((x_ini(2)-sum(x_adj1)/4)^2+(x_ini(3)-sum(y_adj1)/4)^2);
     car_dist_adj2=sqrt((x_ini(2)-sum(x_adj2)/4)^2+(x_ini(3)-sum(y_adj2)/4)^2);
-
+    
     if(obs_chk==0 && car_dist <= r && car_dist>0)
             obs_chk=1;
     end
     if(obs_chk==1 && car_dist<0)
-        psi_dot_d=1*pi/180;
         obs_chk=1;
     end
 
@@ -232,7 +231,8 @@ for i=1:length(t)
 
     %plot update
     set(car_laider, 'Xdata', X+r*cos(a_),'Ydata', Y+r*sin(a_));
-    set(car_point, 'Xdata', X+0.1*cos(a_),'Ydata', Y+0.1*sin(a_));
+    %set(car_point, 'Xdata', X+0.1*cos(a_),'Ydata', Y+0.1*sin(a_));
+    plot(x_ini(2)+0.1*cos(a_),x_ini(3)+0.1*sin(a_));
     set(car_pos, 'Xdata', x_point,'Ydata', y_point);
     set(front_car, 'Xdata', x_front,'Ydata', y_front);
     set(adj1_car, 'Xdata', x_adj1,'Ydata', y_adj1);
