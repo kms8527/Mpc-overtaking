@@ -1,23 +1,18 @@
-function [H_,F_,G_,D_,Q,O_,B1_,B2_,Au_,Ay_,At_,by_]=matrix_def(v,delt,N,rr)
+function [A_,H_,F_,G_,D_,Q,O_,B1_,Au_,Ay_,At_,bu0_,by0_]=matrix_def(delt,N,rr)
 G = [ ] ; 
-H = [0; 0];
+H = [zeros(4,2)];
 F = [ ]; 
-D = eye(N) ; 
-A = [ 1 0 0 ; 0 1 0; v*delt 0 1 ] ; 
-B1 = [ delt; 0 ; 0 ] ;
-B2 = [ 0; v*delt; 0];
-C = [ 0 1 0; 0 0 1 ] ; 
+D = eye(2*N) ; 
+A = [0 0 0 0 ; 0 0 0 1; 0 0 0 0; 0 0 0 0 ] ; 
+A = A*delt+eye(4);
+B1 = [ 0 1; 0 0 ; 0 0; 1 0 ] *delt;
+C = eye(4) ; 
 O=[];
-by0 = eye(2); %xmax ymax xim ymin 으로 이뤄진 b를 만들기 위해
+by0 = eye(4); %psi'max xmax ymax vmax / -psi'min -xim -ymin -vmin 으로 이뤄진  8x1 b를 만들기 위해 인수에 4넣음
+bu0 = eye(2); %amax psi''max / amax psi''max
 % H, G, F, D matrix computation
 for i = 1 : N
-    O_row = zeros(2,3);
-    
-    for j=1:i
-         O_row=O_row+C*A^(j-1);
-    end
-  
-    O = [ O ;  O_row];
+
     G = [ G ; C*A^i ] ;
     F = [ F ; C*A^(i-1)*B1 ] ;
     if i ~=1 
@@ -25,33 +20,35 @@ for i = 1 : N
         for j = i :-1: 2
             final_row  = [final_row C*A^(j-2)*B1 ] ;  %C : 2 3 A = 3 3 B1 = 3 1 -> 2 1
         end
-        H = [ H zeros(2*(i-1),1) ; final_row [0; 0]] ;
+        H = [ H zeros(4*(i-1),2) ; final_row zeros(4,2)] ;
         
-        by0=[by0; eye(2)];
+        by0 = [by0; eye(4)];
+        bu0 = [bu0; eye(2)];
     end
-    if i ~=N
-        D(i,i+1) = -1 ; 
-    elseif i ==N
-        D(i,i) = 0 ;
+    if i < N
+        D(2*i-1,(2*i-1)+2) = -1 ;
+        D(2*i,2*i+2)=-1;
+    else
+        D(2*i-1,2*i-1) = 0 ;
+        D(2*i,2*i) = 0;
     end
 end
-
 Q = 1/rr*(D.'*D) + H.'*H;
-Au=[eye(N); -eye(N)]; %2N,N
-Ay=[eye(2*N); -eye(2*N)];
-Ay1=Ay*H; %2N,N 
+Au=[eye(2*N); -eye(2*N)]; %4N,2N
+Ay=[eye(4*N); -eye(4*N)];
+Ay1=Ay*H; %4Nx4M * 4Nx2N = 4Nx2N
 At=[ Au; Ay1;];
 
 
-
+A_=A;
 H_=H;
 F_=F;
 G_=G;
 D_=D;
 O_=O;
 B1_=B1;
-B2_=B2;
 Au_=Au;
 Ay_=Ay;
 At_=At;
-by_=by0;
+bu0_=bu0;
+by0_=by0;
