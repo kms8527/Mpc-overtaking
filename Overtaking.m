@@ -13,13 +13,13 @@ x=[0; 0; 1/2*width; 0]; %initial psi' ; x ; y ; v;
 % desired waypoint
 
 Yd=width;%300%1/2*width;%width;
-vd=0;
+vd=3;
 %simulation time
-delt= 200e-4;
+delt= 200e-3;
 tf=80;
 t=0:delt:tf;
 
-rr=5; %weight value
+rr=1/2; %weight value
 
 N=40; % predicted step number
 
@@ -34,7 +34,6 @@ s_adj1=0;
 s_adj2=0;
 
 ego_lim=10; %m/s
-a=0;
 v_front=1; front_lim=0; %m/s
 a_front=0;
 v_adj1=1; adj1_lim=0;
@@ -71,14 +70,14 @@ y_ego=(y_point(1)+y_point(4))/2;
 
 %%
 %input constraints
-pmax = 10 *pi/180;  %unit : rad/s^2 % maximum psi
+pmax = 5 *pi/180;  %unit : rad/s^2 % maximum psi
 amax = 1.5;
 %output constraints
-xmax = 400;
+xmax = 350;
 xmin = 0;
 ymax =2 * width; %unit : m %upper lane value when there isnt a obstacle
 ymin = 0; %unit : m %lower lane value when there isnt a obstacle
-vmax = 100;
+vmax = 50;
 
 
 %slope maximum, minimum constr
@@ -137,7 +136,7 @@ for i=1:length(t)
         input1(i)=U(1);
         input2(i)=U(2);
     end
-    Xd=300;%init_x+s_front+10;
+    Xd=50;%init_x+s_front+10;
 
         %changing way point
 
@@ -159,7 +158,9 @@ for i=1:length(t)
     else
         f = H.'*(G * x_ini + F * u_ini - by0 * [ Xd; Yd+width; vd]);
     end
-    
+    if(i == 21)
+        asd = 8;
+    end
     U=quadprog(Q,f,At,bt);
     J=(1/2*U'*Q*U+f.'*U)
 
